@@ -21,7 +21,13 @@
                 <div class="username">{{ message.username }}
                     {%if message.user.email%} <span class="print-only user-email">({{message.user.email}})</span>{%endif%}
                 </div>
-                <a href="#{{ message.id}}"><div class="time">{{ message.time }}</div></a> {% if message.channelname %} <i>channel: #{{message.channelname }}</i> {% endif %} {% if message.groupname %} <i>group: #{{message.groupname }}</i> {% endif %}
+                {% if message.channelname %}
+                    <a href="/channel/{{ message.channelname }}/#{{ message.id}}"><div class="goto">Go to {{ message.time }}</div></a> <i>group: #{{message.channelname }}</i>
+                {% elif message.groupname %}
+                    <a href="/group/{{ message.groupname }}/#{{ message.id}}"><div class="goto">Go to {{ message.time }}</div></a> <i>group: #{{message.groupname }}</i>
+                {% else %}
+                    <a href="/#{{ message.id}}"><div class="time">{{ message.time }}</div></a>
+                {% endif %}
                 <div class="msg">
                     {{ message.msg|safe }}
                     {% for attachment in message.attachments -%}
