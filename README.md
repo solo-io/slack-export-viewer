@@ -1,122 +1,65 @@
-# Slack Export Viewer
+# Solo's - Slack Export Viewer
 
-[![Build Status](https://travis-ci.org/hfaran/slack-export-viewer.svg?branch=master)](https://travis-ci.org/hfaran/slack-export-viewer)
-[![PyPI version](https://badge.fury.io/py/slack-export-viewer.svg)](http://badge.fury.io/py/slack-export-viewer)
+Is a fork of [hfaran/slack-export-viewer](https://kandi.openweaver.com/python/hfaran/slack-export-viewer), for informations on how its pieces work check its readme.
 
-A Slack Export archive viewer that allows you to easily view and share your 
-Slack team's export (instead of having to dive into hundreds of JSON files).
+## Our modifications
 
-![Preview](screenshot.png)
+We added: 
+- Search capabilities, by adding indexing via meilisearch.
+- Go to message, after searching an message.
 
+## How to run
 
-## Contents
-
-* [Overview](#overview)
-* [Installation](#installation)
-* [Usage](#usage)
-* [Acknowledgements](#acknowledgements)
-
-## Overview
-
-`slack-export-viewer` is useful for small teams on a free Slack plan (limited to 10,000 messages) who overrun their budget and ocassionally need a nice interface to refer back to previous messages. You get a web interface to easily scroll through all channels in the export without having to look at individual JSON files per channel per day.
-
-`slack-export-viewer` can be used locally on one machine for yourself to explore an export or it can be run on a headless server (as it is a Flask web app) if you also want to serve the content to the rest of your team.
-
-
-## Installation
-
-I recommend [`pipsi`](https://github.com/mitsuhiko/pipsi) for a nice 
-isolated install.
-
-```bash
-pipsi install slack-export-viewer
+1. Run meilisearch:
+```
+docker run -it --rm -p 7700:7700 getmeili/meilisearch:latest
 ```
 
-Or just feel free to use `pip` as you like.
+2. Download latest backup from: https://s3.console.aws.amazon.com/s3/object/solo-slack?region=eu-west-1&prefix=slack.tgz
 
-```bash
-pip install slack-export-viewer
+3. Upack it to any dir
+```
+tar -xvf ~/Downloads/slack.tgz -C /tmp/
 ```
 
-`slack-export-viewer` will be installed as an entry-point; run from anywhere.
-
-```bash
-$ slack-export-viewer --help
-Usage: slack-export-viewer [OPTIONS]
-
-Options:
-  -p, --port INTEGER        Host port to serve your content on
-  -z, --archive PATH        Path to your Slack export archive (.zip file or
-                            directory)  [required]
-  -I, --ip TEXT             Host IP to serve your content on
-  --no-browser              If you do not want a browser to open
-                            automatically, set this.
-  --channels TEXT           A comma separated list of channels to parse.
-  --no-sidebar              Removes the sidebar.
-  --no-external-references  Removes all references to external css/js/images.
-  --test                    Runs in 'test' mode, i.e., this will do an archive
-                            extract, but will not start the server, and
-                            immediately quit.
-  --debug
-  --help                    Show this message and exit.
+4. Load data into meilisearch
+```
+pip install -r requirements.txt
+python3 synctomeili.py -d /tmp/slack -m http://localhost:7700
 ```
 
+To checkout meili data open [http://localhost:7700](http://localhost:7700)
 
-## Usage
-
-### 1) Grab your Slack team's export
-
-* Visit [https://my.slack.com/services/export](https://my.slack.com/services/export)
-* Create an export
-* Wait for it to complete
-* Refresh the page and download the export (.zip file) into whatever directory
-
-### 2) Point `slack-export-viewer` to it
-
-Point slack-export-viewer to the .zip file and let it do its magic
-
-```bash
-slack-export-viewer -z /path/to/export/zip
+5. Run the application
+```
+python3 app.py -z /tmp/slack -p 8089 -m http://localhost:7700
 ```
 
-If everything went well, your archive will have been extracted, processed, and browser window will have opened showing your *#general* channel from the export.
+To checkout the slack-viewer open [http://localhost:8089](http://localhost:8089)
 
-## CLI
+## Backing up Slack Messages
 
-There is now a CLI included as well. Currently the one command you can use is clearing the cache from slack-export-viewer from your %TEMP% directory; see usage:
+The script to backup slack messages is located under ./scripts/slack-backup. This is run as a CronJob.
 
+
+To build a new image execute:
 ```
-└———→ slack-export-viewer-cli --help
-Usage: slack-export-viewer-cli [OPTIONS] COMMAND [ARGS]...
+pushd scripts/slack-backup
 
-Options:
-  --help  Show this message and exit.
+docker build -t rinormaloku/backup-slack-to-s3 .  
 
-Commands:
-  clean  Cleans up any temporary files (including...
-```
-
-### Examples
-
-```
-┌— hamza@AURORAONE C:\Users\hamza
-└———→ slack-export-viewer-cli clean
-Run with -w to remove C:\Users\hamza\AppData\Local\Temp\_slackviewer
-┌— hamza@AURORAONE C:\Users\hamza
-└———→ slack-export-viewer-cli clean -w
-Removing C:\Users\hamza\AppData\Local\Temp\_slackviewer...
+popd
 ```
 
-## Acknowledgements
+The container expects the following env variables to be defined:
+```
+env:
+- name: AWS_ACCESS_KEY_ID
+  value: <REDACTED>
+- name: AWS_SECRET_ACCESS_KEY
+  value: <REDACTED>
+- name: AWS_DEFAULT_REGION
+  value: <REDACTED>
+```
 
-Credit to Pieter Levels whose [blog post](https://levels.io/slack-export-to-html/) and PHP script I used as a jumping off point for this.
-
-### Improvements over Pieter's script
-
- `slack-export-viewer` is similar in core functionality but adds several things on top to make it nicer to use:
-
-* An installable application
-* Automated archive extraction and retention
-* A Slack-like sidebar that lets you switch channels easily
-* Much more "sophisticated" rendering of messages
-* A Flask server which lets you serve the archive contents as opposed to a PHP script which does static file generation
+After the messages are backed up and pushed to S3, you need to rollout a new deployment for the slack-viewer-exporter.

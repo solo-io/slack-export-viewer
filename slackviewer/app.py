@@ -1,5 +1,8 @@
 import flask
 import re
+import sys
+
+from .querymeilisearch import QueryMeilisearch
 
 app = flask.Flask(
     __name__,
@@ -55,33 +58,27 @@ def group_name(name):
 def search():
     query = flask.request.args.get('search')
     messages = {}
-    all_messages = {}
-    for channel in flask._app_ctx_stack.channels:
-        messages[channel] = []
-        for message in flask._app_ctx_stack.channels[channel]:
-            if(query.startswith('/')):
-                regex = re.compile(r'%s' % query[1:-1], re.IGNORECASE)
-                cleanr = re.compile('<.*?>')
-                cleantext = re.sub(cleanr, '', message.msg)
-                match = regex.search(cleantext)
-                if match is not None:
-                    messages[channel].append(message)
-            else:
-                if(query.lower() in message.msg.lower()):
-                    messages[channel].append(message)
-    for group in flask._app_ctx_stack.groups:
-        messages[group] = []
-        for message in flask._app_ctx_stack.groups[group]:
-            if(query.startswith('/')):
-                regex = re.compile(r'%s' % query[1:-1], re.IGNORECASE)
-                cleanr = re.compile('<.*?>')
-                cleantext = re.sub(cleanr, '', message.msg)
-                match = regex.search(cleantext)
-                if match is not None:
-                    messages[channel].append(message)
-            else:
-                if(query.lower() in message.msg.lower()):
-                    messages[group].append(message)
+
+    qm = QueryMeilisearch(flask._app_ctx_stack.meilisearch_host, flask._app_ctx_stack.meilisearch_master_key)
+    res = qm.search(query)
+
+    messages["All"] = []
+    hits = res['hits']
+
+    # initialize all channels
+    for hit in hits:
+        if hit['origin_type'] == "CHANNEL" and hit['id'] in flask._app_ctx_stack.message_channel_index:
+            channel_index = flask._app_ctx_stack.message_channel_index[hit['id']]
+            msg = flask._app_ctx_stack.channels[channel_index[0]][channel_index[1]]
+            msg.channelname = channel_index[0]
+            messages["All"].append(msg)
+        elif hit['origin_type'] == "GROUP" and hit['id'] in flask._app_ctx_stack.message_group_index:
+            group_index = flask._app_ctx_stack.message_group_index[hit['id']]
+            msg = flask._app_ctx_stack.groups[group_index[0]][group_index[1]]
+            msg.groupname = group_index[0]
+            messages["All"].append(msg)
+
+
     channels = list(flask._app_ctx_stack.channels.keys())
     groups = list(flask._app_ctx_stack.groups.keys())
     dm_users = list(flask._app_ctx_stack.dm_users)

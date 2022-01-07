@@ -9,7 +9,7 @@ from slackviewer.reader import Reader
 from slackviewer.utils.click import envvar, flag_ennvar
 
 
-def configure_app(app, archive, channels, no_sidebar, no_external_references, debug):
+def configure_app(app, archive, channels, no_sidebar, no_external_references, debug, meilisearch_host, meilisearch_master_key):
     app.debug = debug
     app.no_sidebar = no_sidebar
     app.no_external_references = no_external_references
@@ -27,6 +27,25 @@ def configure_app(app, archive, channels, no_sidebar, no_external_references, de
     top.dm_users = reader.compile_dm_users()
     top.mpims = reader.compile_mpim_messages()
     top.mpim_users = reader.compile_mpim_users()
+    top.meilisearch_host = meilisearch_host
+    top.meilisearch_master_key = meilisearch_master_key
+
+    message_channel_index = {}
+    for channelname in top.channels.keys():
+        for index, message in enumerate(top.channels[channelname]):
+            if message.client_msg_id is None:
+                continue
+            message_channel_index[message.client_msg_id] = (channelname, index)
+
+    message_group_index = {}
+    for groupname in top.groups.keys():
+        for index, message in enumerate(top.groups[groupname]):
+            if message.client_msg_id is None:
+                continue
+            message_group_index[message.client_msg_id] = (groupname, index)
+
+    top.message_channel_index = message_channel_index
+    top.message_group_index = message_group_index
 
 
 @click.command()
@@ -53,12 +72,18 @@ def configure_app(app, archive, channels, no_sidebar, no_external_references, de
 @click.option('--test', is_flag=True, default=flag_ennvar("SEV_TEST"),
               help="Runs in 'test' mode, i.e., this will do an archive extract, but will not start the server,"
                    " and immediately quit.")
+@click.option("-m", "--meilisearch-server", type=click.STRING, required=True,
+              default=envvar('MEILISEARCH_SERVER', 'http://localhost:7700'),
+              help="Meilisearch server to which the data is synchronized")
+@click.option("-k", "--meilisearch-master-key", type=click.STRING, required=True,
+              default=envvar('MEILI_MASTER_KEY', ''),
+              help="Meilisearch server to which the data is synchronized")
 @click.option('--debug', is_flag=True, default=flag_ennvar("FLASK_DEBUG"))
-def main(port, archive, ip, no_browser, channels, no_sidebar, no_external_references, test, debug):
+def main(port, archive, ip, no_browser, channels, no_sidebar, no_external_references, test, meilisearch_server, meilisearch_master_key, debug):
     if not archive:
         raise ValueError("Empty path provided for archive")
 
-    configure_app(app, archive, channels, no_sidebar, no_external_references, debug)
+    configure_app(app, archive, channels, no_sidebar, no_external_references, debug, meilisearch_server, meilisearch_master_key)
 
     if not no_browser and not test:
         webbrowser.open("http://{}:{}".format(ip, port))

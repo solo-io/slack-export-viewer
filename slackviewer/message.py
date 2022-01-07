@@ -108,6 +108,10 @@ class Message(object):
         return self.time
 
     @property
+    def client_msg_id(self):
+        return self._message.get('client_msg_id')
+
+    @property
     def subtype(self):
         return self._message.get("subtype")
 
