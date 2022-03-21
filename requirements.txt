@@ -1,5 +1,5 @@
-click
-flask
-markdown2
-emoji
-meilisearch
+markdown2==2.4.2
+meilisearch==0.17.0
+click==7.1.2
+emoji==1.6.1
+Flask==2.0.2

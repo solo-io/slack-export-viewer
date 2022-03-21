@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 function recursive {
     echo "[]" > ./slack/tmp1.json
     cursor=
@@ -71,6 +73,8 @@ done
 
 recursive 'curl -H "Authorization: Bearer $token" "https://slack.com/api/conversations.list?types=private_channel&cursor=$cursor"' channels /tmp/groups.json
 
+
+echo == PROCESSING CORP ==
 cat /tmp/groups.json | jq -r ".[] | [.name,.id] | @tsv" | while read name id; do
   echo Processing the $name channel
   curl -s -H "Authorization: Bearer $token" "https://slack.com/api/conversations.members?channel=$id" | jq -r '.members[]' > /tmp/groupmembers.txt

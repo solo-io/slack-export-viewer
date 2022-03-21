@@ -4,6 +4,7 @@
 2. [How to run](#Howtorun)
 3. [Backing up Slack Messages](#BackingupSlackMessages)
 4. [Syncronizing Slack Users](#SyncronizingSlackUsers)
+5. [Building the container image](#BuildingContainer)
 
 
 ##  1. <a name='Ourmodifications'></a>Our modifications
@@ -105,3 +106,10 @@ data:
 ```
 
 After the messages are backed up and pushed to S3, you need to rollout a new deployment for the slack-viewer-exporter.
+
+
+## 5. <a name='BuildingContainer'></a> Building the container
+
+```
+docker build -t rinormaloku/solo-slack-viewer:latest .
+```

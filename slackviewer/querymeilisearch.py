@@ -6,4 +6,4 @@ class QueryMeilisearch(object):
 
     def search(self, query):
         index = self.client.index('messages')
-        return index.search(query)
+        return index.search(query, {'limit' : 200})
