@@ -13,10 +13,6 @@ app = flask.Flask(
 
 @app.route("/channel/<name>/")
 def channel_name(name):
-    all_messages = []
-    for channel in flask._app_ctx_stack.channels:
-        all_messages = all_messages + flask._app_ctx_stack.channels[channel]
-    print(len(all_messages))
     messages = flask._app_ctx_stack.channels[name]
     channels = list(flask._app_ctx_stack.channels.keys())
     groups = list(flask._app_ctx_stack.groups.keys()) if flask._app_ctx_stack.groups else {}
@@ -35,10 +31,6 @@ def channel_name(name):
 
 @app.route("/group/<name>/")
 def group_name(name):
-    all_messages = []
-    for group in flask._app_ctx_stack.groups:
-        all_messages = all_messages + flask._app_ctx_stack.groups[group]
-    print(len(all_messages))
     messages = flask._app_ctx_stack.groups[name]
     channels = list(flask._app_ctx_stack.channels.keys())
     groups = list(flask._app_ctx_stack.groups.keys())

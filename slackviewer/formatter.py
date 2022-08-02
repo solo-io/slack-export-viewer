@@ -49,6 +49,19 @@ class SlackFormatter(object):
         user_id = message.get("user") or message.get("bot_id")
         if user_id in self.__USER_DATA:
             return self.__USER_DATA.get(user_id)
+
+        # Remote connection user
+        if "user_profile" in message:
+            real_name = message.get("user_profile").get("real_name")
+            display_name = message.get("user_profile").get("display_name")
+            user_id = message.get("user")
+            user_name = real_name if real_name != None and len(real_name) > 0 else display_name
+            self.__USER_DATA[user_id] = User({
+                "email": "hidden@remote-user.com",
+                "real_name": user_name,
+            })
+            return self.__USER_DATA.get(user_id);
+
         logging.error("unable to find user in %s", message)
 
     def render_text(self, message, process_markdown=True):

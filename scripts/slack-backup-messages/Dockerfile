@@ -5,3 +5,6 @@ RUN apk add --update curl jq bash && \
     rm -rf /var/cache/apk/*
 COPY * /
 RUN chmod +x /run.sh
+RUN chmod +x /run-corp.sh
+RUN chmod +x /run-public.sh
+RUN chmod +x /combine-backups.sh
