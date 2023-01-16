@@ -21,9 +21,8 @@ def main(meilisearch_server, meilisearch_master_key, slack_directory):
     reader = Reader(slack_directory)
     channels = reader.compile_channels({})
     groups = reader.compile_groups()
-    users = reader.compile_users()
 
-    print("Pushing to server: %s", meilisearch_server)
+    print("Pushing to server: %s" % meilisearch_server)
     print()
     ms_messages = transform_to_ms_messages(channels, groups)
     ms = Meilisearch(host=meilisearch_server, masterkey=meilisearch_master_key)

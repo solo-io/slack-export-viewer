@@ -33,7 +33,10 @@ class Message(object):
     @property
     def username(self):
         try:
-            return self.user.display_name
+            if self.user is None:
+                return None
+            else:
+                return self.user.display_name
         except KeyError:
             # In case this is a bot or something, we fallback to "username"
             if "username" in self._message:
