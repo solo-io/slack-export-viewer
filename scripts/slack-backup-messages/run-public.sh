@@ -34,7 +34,7 @@ recursive 'curl "https://slack.com/api/conversations.list?token=$token&types=pri
 
 
 cat ./slack/channels.json ./slack/groups.json | jq -r ".[] | [.name,.id] | @tsv" | while read name id; do
-    last_ts=1577883600.000000
+    last_ts="$(( $(date +%s) - 30*24*60*60 )).000000"
     if [ -d "./slack/$name" ]; then
         last_ts=$(cat ./slack/$name/messages.json | jq -r 'sort_by(.ts) | .[].ts' | tail -1)
         recursive 'curl "https://slack.com/api/conversations.history?token=$token&channel=$id&oldest=${last_ts}&cursor=$cursor"' messages ./slack/$name/new_messages.json
