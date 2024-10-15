@@ -1,9 +1,15 @@
 import click
 import os
 from slackviewer.reader import Reader
+import resource  # Unix-specific
 from .sync import Meilisearch
 
 from .transform import *
+
+def limit_memory(max_memory_mb):
+    """Limit the memory usage to max_memory_mb."""
+    soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+    resource.setrlimit(resource.RLIMIT_AS, (max_memory_mb * 1024 * 1024, soft))
 
 
 @click.command()
@@ -17,6 +23,9 @@ from .transform import *
               default=os.environ.get('SLACK_DIRECTORY', '../slack'),
               help="The slack directory to synchronize")
 def main(meilisearch_server, meilisearch_master_key, slack_directory):
+    # Limit memory usage to 2GB
+    limit_memory(2048)
+
     print("Reading messages from: %s", slack_directory)
     reader = Reader(slack_directory)
     channels = reader.compile_channels({})
@@ -24,8 +33,7 @@ def main(meilisearch_server, meilisearch_master_key, slack_directory):
 
     print("Pushing to server: %s" % meilisearch_server)
     print()
-    ms_messages = transform_to_ms_messages(channels, groups)
     ms = Meilisearch(host=meilisearch_server, masterkey=meilisearch_master_key)
-    ms.createmessages(ms_messages)
+    transform_and_store_messages(channels, groups, ms)
 
     print()
