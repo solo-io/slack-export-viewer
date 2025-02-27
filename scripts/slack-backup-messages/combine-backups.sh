@@ -34,4 +34,4 @@ for folder in $(find slack-public/* -maxdepth 0 -type d); do
 done
 
 tar zcvf slack-combined.tgz slack-combined
-aws s3 cp slack-combined.tgz s3://solo-slack/
+aws s3 cp slack-combined.tgz s3://solo-slack2/

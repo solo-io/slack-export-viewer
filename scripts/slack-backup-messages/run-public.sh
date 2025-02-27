@@ -5,7 +5,7 @@ set -x
 token=$TOKEN_PUBLIC
 rm -rf slack
 
-aws s3 cp s3://solo-slack/slack-public.tgz . && tar zxvf slack-public.tgz
+aws s3 cp s3://solo-slack2/slack-public.tgz . && tar zxvf slack-public.tgz
 
 function recursive {
     echo "[]" > ./slack/tmp1.json
@@ -34,7 +34,7 @@ recursive 'curl "https://slack.com/api/conversations.list?token=$token&types=pri
 
 
 cat ./slack/channels.json ./slack/groups.json | jq -r ".[] | [.name,.id] | @tsv" | while read name id; do
-    last_ts="$(( $(date +%s) - 30*24*60*60 )).000000"
+    last_ts="$(( $(date +%s) - 180*24*60*60 )).000000"
     if [ -d "./slack/$name" ]; then
         last_ts=$(cat ./slack/$name/messages.json | jq -r 'sort_by(.ts) | .[].ts' | tail -1)
         recursive 'curl "https://slack.com/api/conversations.history?token=$token&channel=$id&oldest=${last_ts}&cursor=$cursor"' messages ./slack/$name/new_messages.json
@@ -77,4 +77,4 @@ mv slack slack-public
 mv slack-public.tgz slack-public.tgz.`date +'%Y%m%d'`   
 tar zcvf slack-public.tgz slack-public
 
-aws s3 cp slack-public.tgz s3://solo-slack/
+aws s3 cp slack-public.tgz s3://solo-slack2/

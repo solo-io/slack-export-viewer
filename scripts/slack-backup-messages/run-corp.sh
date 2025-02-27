@@ -3,7 +3,7 @@
 set -x 
 
 export token=$TOKEN_CORP
-aws s3 cp s3://solo-slack/slack-corp.tgz . && tar zxvf slack-corp.tgz
+aws s3 cp s3://solo-slack2/slack-corp.tgz . && tar zxvf slack-corp.tgz
 mkdir slack
 
 function recursive {
@@ -34,7 +34,7 @@ recursive 'curl -H "Authorization: Bearer $token" "https://slack.com/api/convers
 
 
 cat ./slack/channels.json ./slack/groups.json | jq -r ".[] | [.name,.id] | @tsv" | while read name id; do
-    last_ts="$(( $(date +%s) - 30*24*60*60 )).000000"
+    last_ts="$(( $(date +%s) - 180*24*60*60 )).000000"
     if [ -d "./slack/$name" ]; then
         last_ts=$(cat ./slack/$name/messages.json | jq -r 'sort_by(.ts) | .[].ts' | tail -1)
         recursive 'curl -H "Authorization: Bearer $token" "https://slack.com/api/conversations.history?channel=$id&oldest=${last_ts}&cursor=$cursor"' messages ./slack/$name/new_messages.json
@@ -78,4 +78,4 @@ mv slack slack-corp
 mv slack-corp.tgz slack-corp.tgz.`date +'%Y%m%d'`
 tar zcvf slack-corp.tgz slack-corp
 
-aws s3 cp slack-corp.tgz s3://solo-slack/
+aws s3 cp slack-corp.tgz s3://solo-slack2/
