@@ -22,7 +22,7 @@ We added:
 docker run -it --rm -p 7700:7700 getmeili/meilisearch:latest
 ```
 
-2. Download latest backup from: https://s3.console.aws.amazon.com/s3/object/solo-slack?region=eu-west-1&prefix=slack.tgz
+2. Download latest backup from: https://s3.console.aws.amazon.com/s3/object/solo-slack2?region=eu-west-1&prefix=slack.tgz
 
 3. Upack it to any dir
 ```
