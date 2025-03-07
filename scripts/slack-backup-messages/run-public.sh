@@ -1,11 +1,11 @@
 #!/bin/bash
-
 set -x 
 
-token=$TOKEN_PUBLIC
+export token=$TOKEN_PUBLIC
 rm -rf slack
 
 aws s3 cp s3://solo-slack2/slack-public.tgz . && tar zxvf slack-public.tgz
+mv slack-public slack
 
 function recursive {
     echo "[]" > ./slack/tmp1.json

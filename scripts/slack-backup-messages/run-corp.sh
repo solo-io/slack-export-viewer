@@ -1,10 +1,11 @@
 #!/bin/bash
-
 set -x 
 
 export token=$TOKEN_CORP
+rm -rf slack
+
 aws s3 cp s3://solo-slack2/slack-corp.tgz . && tar zxvf slack-corp.tgz
-mkdir slack
+mv slack-corp slack
 
 function recursive {
     echo "[]" > ./slack/tmp1.json

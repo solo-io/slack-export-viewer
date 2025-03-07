@@ -1,11 +1,13 @@
-mkdir slack-combined
-
+#!/bin/bash
 set -x
 
-#aws s3 cp s3://solo-slack/slack-public.tgz . && tar zxvf slack-public.tgz
+rm -rf slack
+mkdir slack-combined
+
+#aws s3 cp s3://solo-slack2/slack-public.tgz . && tar zxvf slack-public.tgz
 #mv slack slack-public
 
-#aws s3 cp s3://solo-slack/slack-corp.tgz . && tar zxvf slack-corp.tgz
+#aws s3 cp s3://solo-slack2/slack-corp.tgz . && tar zxvf slack-corp.tgz
 ### wasn't needed
 #mv slack slack-corp
 

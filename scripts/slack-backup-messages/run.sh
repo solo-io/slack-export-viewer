@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -x 
 
 ./run-public.sh
